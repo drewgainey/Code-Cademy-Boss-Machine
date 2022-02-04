@@ -3,16 +3,27 @@ const express = require('express');
 const minionsRouter = express.Router();
 
 const {
-    createMeeting,
     getAllFromDatabase,
     getFromDatabaseById,
     addToDatabase,
     updateInstanceInDatabase,
     deleteFromDatabasebyId,
-    deleteAllFromDatabase,
   } = require('./db');
-  
-//Route handlers - need middleware for error checking  
+
+//check for valid minion
+minionsRouter.param('minionId', (res, req, next, id) => {
+    const minion = getFromDatabaseById('minions', id);
+    console.log(minion);
+    if (minion) {
+        next();
+    } else {
+        const err = new Error('invalid minion id');
+        err.status = 404;
+        return next(err);
+    }
+}); 
+
+//Route handlers   
 //get array of all minions  
 minionsRouter.get('/', (req, res, next) => {
     res.status(200).send(getAllFromDatabase('minions'));
@@ -33,8 +44,9 @@ minionsRouter.get('/:minionId',(req, res, next) => {
 
 //update a minion by id
 minionsRouter.put('/:minionId',(req, res, next) => {
-    updateInstanceInDatabase('minions', req.body);
-    res.status(204).send(getFromDatabaseById('minions', req.params.minionId));
+    const updatedMinion = req.body;
+    updateInstanceInDatabase('minions', updatedMinion);
+    res.status(204).send(getFromDatabaseById('minions', updatedMinion));
 });
 
 //delete a minion by id
@@ -45,6 +57,14 @@ minionsRouter.delete('/:minionId', (req, res, next) => {
     } else {
         res.status(404).send();
     }
+});
+
+//error handling
+minionsRouter.use((err, req, res, next) => {
+    if(!err.status) {
+        err.status = 500;
+    }
+    res.status(err.status).send(err.message);
 });
 
 module.exports = minionsRouter;
