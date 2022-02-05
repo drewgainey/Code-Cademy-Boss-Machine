@@ -11,9 +11,8 @@ const {
   } = require('./db');
 
 //check for valid minion
-minionsRouter.param('minionId', (res, req, next, id) => {
+minionsRouter.param('minionId', (req, res, next, id) => {
     const minion = getFromDatabaseById('minions', id);
-    console.log(minion);
     if (minion) {
         next();
     } else {
@@ -46,7 +45,7 @@ minionsRouter.get('/:minionId',(req, res, next) => {
 minionsRouter.put('/:minionId',(req, res, next) => {
     const updatedMinion = req.body;
     updateInstanceInDatabase('minions', updatedMinion);
-    res.status(204).send(getFromDatabaseById('minions', updatedMinion));
+    res.send(updatedMinion);
 });
 
 //delete a minion by id
